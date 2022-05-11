@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '/assets/css/style.css';
 
 const initialPosts = [
   {
@@ -23,7 +24,7 @@ const App = () => {
   const [posts, setPosts] = useState(initialPosts);
 
   return (
-    <div className='conatiner'>
+    <div className='container'>
       <div className='feed'>
 
         { posts.map((post, i) => 
