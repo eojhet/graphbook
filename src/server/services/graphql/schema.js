@@ -1,4 +1,17 @@
 const typeDefinitions = `
+  input PostInput {
+    text: String!
+  }
+  input UserInput {
+    username: String!
+    avatar: String!
+  }
+  type RootMutation {
+    addPost (
+      post: PostInput!
+      user: UserInput!
+    ): Post
+  }
   type User {
     avatar: String
     username: String
@@ -13,6 +26,7 @@ const typeDefinitions = `
   }
   schema {
     query: RootQuery
+    mutation: RootMutation
   }
 `;
 
