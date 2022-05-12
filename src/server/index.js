@@ -4,7 +4,23 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compress from 'compression';
 
+import services from './services';
+
 const app = express();
+
+// Binding GraphQL server to Express.js web server:
+const serviceNames = Object.keys(services);
+for(let i = 0; i < serviceNames.length; i += 1) {
+  const name = serviceNames[i];
+  if (name === 'graphql') {
+    (async () => {
+      await services[name].start();
+      services[name].applyMiddleware({ app });
+    })();
+  } else {
+    app.use('/${name}', services[name]);
+  }
+};
 
 app.use(compress());
 app.use(cors());
