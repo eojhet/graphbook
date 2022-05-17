@@ -1,27 +1,10 @@
 import logger from '../../helpers/logger.js';
 
-// let posts = [
-//   {
-//     id: 2,
-//     text: 'Fart Brains',
-//     user: {
-//       avatar: '/uploads/avatar1.png',
-//       username: 'Turd Ferguson'
-//     }
-//   },
-//   {
-//     id: 1,
-//     text: 'Yes please!',
-//     user: {
-//       avatar: '/uploads/avatar2.png',
-//       username: 'Spaghetti Man'
-//     }
-//   }
-// ]
+
 export default function resolver() {
 
   const { db } = this;
-  const { Post } = db.models;
+  const { Post, User } = db.models;
 
   const resolvers = {
     Post: {
@@ -35,15 +18,24 @@ export default function resolver() {
       },
     },
     RootMutation: {
-      addPost(root, { post, user }, context) {
-        const postObject = {
-          ...post,
-          user,
-          id: posts.length + 1,
-        };
-        posts.push(postObject);
-        logger.log({ level: 'info', message: 'Post was created' });
-        return postObject;
+      addPost(root, { post }, context) {
+        return User.findAll().then((users) => {
+          const usersRow = users[0];
+
+          return Post.create({
+            ...post,
+          }).then((newPost) => {
+            return Promise.all([
+              newPost.setUser(usersRow.id),
+            ]).then(() => {
+              logger.log({
+                level: 'info',
+                message: 'Post was created',
+              });
+              return newPost;
+            });
+          });
+        });
       },
     },
   };
