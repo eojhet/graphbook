@@ -26,7 +26,7 @@ const ADD_POST = gql`
 
 const Feed = () => {
   const [postContent, setPostContent] = useState('');
-  const { loading, error, data } = useQuery(GET_POSTS);
+  const { loading, error, data } = useQuery(GET_POSTS, { pollInterval: 5000 });
   const [addPost] = useMutation(ADD_POST, {
     update(cache, { data: { addPost } }) {
       cache.modify({
