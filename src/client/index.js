@@ -1,5 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import App from './App';
+import client from './apollo';
+import { createRoot } from 'react-dom/client';
+import { ApolloProvider } from '@apollo/client';
 
-ReactDOM.render(<App/>, document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
+  <ApolloProvider client={client}>
+    <App/>
+  </ApolloProvider>
+);
