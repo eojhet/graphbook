@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
 
 const GET_POSTS = gql`{
   posts {
@@ -12,21 +12,57 @@ const GET_POSTS = gql`{
   }
 }`;
 
+const ADD_POST = gql`
+  mutation addPost($post : PostInput!) {
+    addPost(post : $post) {
+      id
+      text
+      user {
+        username
+        avatar
+      }
+    }
+  }`;
+
 const Feed = () => {
   const [postContent, setPostContent] = useState('');
   const { loading, error, data } = useQuery(GET_POSTS);
+  const [addPost] = useMutation(ADD_POST, {
+    update(cache, { data: { addPost } }) {
+      cache.modify({
+        fields: {
+          posts(existingPosts = []) {
+            const newPostRef = cache.writeFragment({
+              data: addPost,
+              fragment: gql`
+                fragment NewPost on Post {
+                  id
+                  text
+                }`
+            });
+            return [newPostRef, ...existingPosts];
+          }
+        }
+      });
+    },
+    optimisticResponse: {
+      __typename: "mutation",
+      addPost: {
+        __typename: "Post",
+        text: postContent,
+        id: -1,
+        user: {
+          __typename: "User",
+          username: "loading...",
+          avatar: "/public/loading.gif"
+        }
+      }
+    }
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newPost = {
-      id: posts.length + 1,
-      text: postContent,
-      user: {
-        avatar: '/uploads/avatar1.png',
-        username: 'Fake User'
-      }
-    };
-    setPosts([newPost, ...posts]);
+    addPost({ variables: { post: { text: postContent } } });
     setPostContent('');
   };
 
@@ -53,7 +89,7 @@ const Feed = () => {
 
         { posts.map((post, i) => 
 
-          <div key={post.id} className="post">
+          <div key={post.id} className={'post' + (post.id < 0 ? ' optimistic': '')}>
             <div className='header'>
               <img src={post.user.avatar} />
               <h2>{post.user.username}</h2>
