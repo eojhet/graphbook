@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import Feed from './Feed';
+import Chats from './Chats';
 import '/assets/css/style.css';
 
 const App = () => {
@@ -11,7 +12,8 @@ const App = () => {
         <title>Graphbook - Feed</title>
         <meta name="description" content="All your friends are here."></meta>
       </Helmet>
-      <Feed />      
+      <Feed />
+      <Chats />
     </div>
   )
 };
