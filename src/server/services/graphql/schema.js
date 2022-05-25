@@ -46,10 +46,14 @@ const typeDefinitions = `
     users: [User]
     lastMessage: Message
   }
+  type PostFeed {
+    posts: [Post]
+  }
   type RootQuery {
     posts: [Post]
     chats: [Chat]
     chat(chatId: Int): Chat
+    postsFeed(page: Int, limit: Int): PostFeed
   }
   schema {
     query: RootQuery

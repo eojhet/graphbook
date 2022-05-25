@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
-const GET_POSTS = gql`{
-  posts {
-    id
-    text
-    user {
-      avatar
-      username
+const GET_POSTS = gql`
+  query postsFeed($page: Int, $limit: Int) {
+    postsFeed(page: $page, limit: $limit) {
+      posts {
+        id
+        text
+        user {
+          avatar
+          username
+        }
+      }
     }
   }
-}`;
+`
 
 const ADD_POST = gql`
   mutation addPost($post : PostInput!) {
@@ -22,29 +27,18 @@ const ADD_POST = gql`
         avatar
       }
     }
-  }`;
+  }
+`;
 
 const Feed = () => {
   const [postContent, setPostContent] = useState('');
-  const { loading, error, data } = useQuery(GET_POSTS, { pollInterval: 5000 });
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+
+  const { loading, error, data, fetchMore } = useQuery(GET_POSTS, { pollInterval: 5000,
+    variables: { page: 0, limit: 10 } });
+
   const [addPost] = useMutation(ADD_POST, {
-    update(cache, { data: { addPost } }) {
-      cache.modify({
-        fields: {
-          posts(existingPosts = []) {
-            const newPostRef = cache.writeFragment({
-              data: addPost,
-              fragment: gql`
-                fragment NewPost on Post {
-                  id
-                  text
-                }`
-            });
-            return [newPostRef, ...existingPosts];
-          }
-        }
-      });
-    },
     optimisticResponse: {
       __typename: "mutation",
       addPost: {
@@ -57,7 +51,30 @@ const Feed = () => {
           avatar: "/public/loading.gif"
         }
       }
+    },
+    update(cache, { data: { addPost } }) {
+      cache.modify({
+        fields: {
+          postsFeed(existingPostsFeed) {
+            const { posts: existingPosts } = existingPostsFeed;
+            const newPostRef = cache.writeFragment({
+              data: addPost,
+              fragment: gql`
+                fragment NewPost on Post {
+                  id
+                  text
+                }
+              `
+            });
+            return {
+              ...existingPostsFeed,
+              posts: [newPostRef, ...existingPosts]
+            };
+          }
+        }
+      });
     }
+    
   });
 
   const handleSubmit = (e) => {
@@ -66,9 +83,36 @@ const Feed = () => {
     setPostContent('');
   };
 
+  const loadMore = (fetchMore) => {
+    const self = this;
+    fetchMore({
+      variables: {
+        page: page + 1,
+      },
+      updateQuery(previousResult, { fetchMoreResult }) {
+        if(!fetchMoreResult.postsFeed.posts.length) {
+          setHasMore(false);
+          return previousResult;
+        }
+        setPage(page + 1);
+        const newData = {
+          postsFeed: {
+            __typename: 'PostFeed',
+            posts: [
+              ...previousResult.postsFeed.posts,
+              ...fetchMoreResult.postsFeed.posts
+            ]
+          }
+        };
+        return newData;
+      }
+    });
+  };
+
   if (loading) return 'Loading...';
   if (error) return 'Error! ${error.message}';
-  const { posts } = data;
+  const { postsFeed } = data;
+  const { posts } = postsFeed;
 
   return (
     <div className='container'>
@@ -86,21 +130,25 @@ const Feed = () => {
       
 
       <div className='feed'>
-
-        { posts.map((post, i) => 
-
-          <div key={post.id} className={'post' + (post.id < 0 ? ' optimistic': '')}>
-            <div className='header'>
-              <img src={post.user.avatar} />
-              <h2>{post.user.username}</h2>
+        <InfiniteScroll
+          dataLength={posts.length}
+          next={() => loadMore(fetchMore)}
+          hasMore={hasMore}
+          loader={<div className='loader' key={"loader"}>
+            Loading...</div>}
+        >
+          { posts.map((post, i) => 
+            <div key={post.id} className={'post' + (post.id < 0 ? ' optimistic': '')}>
+              <div className='header'>
+                <img src={post.user.avatar} />
+                <h2>{post.user.username}</h2>
+              </div>
+              <p className='content'>
+                {post.text}
+              </p>
             </div>
-            <p className='content'>
-              {post.text}
-            </p>
-          </div>
-
-        )}
-
+          )}
+        </InfiniteScroll>
       </div>
     </div>
   )
