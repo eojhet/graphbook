@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { gql, useQuery } from '@apollo/client';
 import Chat from './Chat';
 import Loading from './components/loading';
+import Error from './components/error';
 
 const GET_CHATS = gql`{
   chats {
@@ -59,7 +60,7 @@ const Chats = () => {
   }
   
   if (loading) return <div className='chats'><Loading /></div>;
-  if (error) return <div className='chats'><p>{error.message}</p></div>
+  if (error) return <div className='chats'><Error><p>{error.message}</p></Error></div>;
   const { chats } = data;
 
   return (
@@ -84,4 +85,4 @@ const Chats = () => {
   )
 };
 
-export default Chats
+export default Chats;

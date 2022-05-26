@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Loading from './components/loading';
+import Error from './components/error';
 
 const GET_POSTS = gql`
   query postsFeed($page: Int, $limit: Int) {
@@ -111,7 +112,7 @@ const Feed = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return `Error! ${error.message}`;
+  if (error) return <Error><p>{error.message}</p></Error>;
   const { postsFeed } = data;
   const { posts } = postsFeed;
 
