@@ -1,6 +1,5 @@
 import logger from '../../helpers/logger.js';
 
-
 export default function resolver() {
 
   const { db } = this;
@@ -133,6 +132,31 @@ export default function resolver() {
               });
               return newPost;
             });
+          });
+        });
+      },
+      deletePost(root, { postId }, context) {
+        return Post.destroy({
+          where: {
+            id: postId
+          }
+        }).then (function(rows) {
+          if (rows === 1) {
+            logger.log({
+              level: 'info',
+              message: 'Post ' + postId + ' was deleted',
+            });
+            return {
+              success: true
+            };
+          }
+          return {
+            success: false
+          };
+        }, function (err) {
+          logger.log({
+            level: 'error',
+            message: err.message,
           });
         });
       },

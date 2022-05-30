@@ -23,6 +23,9 @@ const typeDefinitions = `
     addMessage (
       message: MessageInput!
     ): Message
+    deletePost (
+      postId: Int!
+    ): Response
   }
   type User {
     id: Int
@@ -48,6 +51,9 @@ const typeDefinitions = `
   }
   type PostFeed {
     posts: [Post]
+  }
+  type Response {
+    success: Boolean
   }
   type RootQuery {
     posts: [Post]
