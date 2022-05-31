@@ -5,6 +5,7 @@ import Feed from './Feed';
 import Chats from './Chats';
 import '/assets/css/style.css';
 import './components/fontawesome';
+import { UserProvider } from './components/context/user';
 
 const App = () => {
 
@@ -14,9 +15,11 @@ const App = () => {
         <title>Graphbook - Feed</title>
         <meta name="description" content="All your friends are here."></meta>
       </Helmet>
-      <Bar />
-      <Feed />
-      <Chats />
+      <UserProvider>
+        <Bar />
+        <Feed />
+        <Chats />
+      </UserProvider>
     </div>
   )
 };
