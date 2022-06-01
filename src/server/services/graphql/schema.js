@@ -26,6 +26,13 @@ const typeDefinitions = `
     deletePost (
       postId: Int!
     ): Response
+    login (
+      email: String!
+      password: String!
+    ): Auth
+  }
+  type Auth{
+    token: String
   }
   type User {
     id: Int

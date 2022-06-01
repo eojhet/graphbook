@@ -1,6 +1,9 @@
 import logger from '../../helpers/logger.js';
 import Sequelize from 'sequelize';
+import bcrypt from 'bcrypt';
+import JWT from 'jsonwebtoken';
 
+const { JWT_SECRET } = process.env;
 const Op = Sequelize.Op;
 
 export default function resolver() {
@@ -189,6 +192,34 @@ export default function resolver() {
           });
         });
       },
+      login(root, { email, password }, context) {
+        return User.findAll({
+          where: {
+            email
+          },
+          raw: true
+        }).then(async (users) => {
+          if (users.length === 1) {
+            const user = users[0];
+            const passwordValid = await bcrypt.compare(
+              password,
+              user.password);
+            if (!passwordValid) {
+              throw new Error('Password does not match');
+            }
+            const token = JWT.sign(
+              { email, id: user.id },
+              JWT_SECRET, 
+              { expiresIn: '1d' }
+            );
+            return {
+              token
+            };
+          } else {
+            throw new Error("User not found");
+          }
+        })
+      }
     },
   };
 
