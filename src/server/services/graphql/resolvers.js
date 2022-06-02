@@ -192,7 +192,9 @@ export default function resolver() {
           });
         });
       },
-      login(root, { email, password }, context) {
+
+
+      login (root, { email, password }, context) {
         return User.findAll({
           where: {
             email
@@ -201,9 +203,12 @@ export default function resolver() {
         }).then(async (users) => {
           if (users.length === 1) {
             const user = users[0];
-            const passwordValid = await bcrypt.compare(
-              password,
-              user.password);
+
+            // swap when you have a hash, it won't compare otherwise.
+            // const passwordValid = await bcrypt.compare( password, user.password);
+            const passwordValid = password === user.password;
+
+
             if (!passwordValid) {
               throw new Error('Password does not match');
             }
