@@ -1,18 +1,69 @@
 const typeDefinitions = `
+  directive @auth on QUERY | FIELD_DEFINITION | FIELD
+
+  type Post {
+    id: Int
+    text: String
+    user: User
+  }
+
+  type User {
+    id: Int
+    avatar: String
+    username: String
+  }
+
+  type Message {
+    id: Int
+    text: String
+    chat: Chat
+    user: User
+  }
+
+  type Chat {
+    id: Int
+    messages: [Message]
+    lastMessage: Message
+    users: [User]
+  }
+
+  type PostFeed {
+    posts: [Post]
+  }
+
+  type RootQuery {
+    posts: [Post] 
+    chats: [Chat] @auth
+    chat(chatId: Int): Chat
+    postsFeed(page: Int, limit: Int): PostFeed @auth
+    usersSearch(page: Int, limit: Int, text: String!): UsersSearch
+  }
+
   input PostInput {
     text: String!
   }
-  input UserInput {
-    username: String!
-    avatar: String!
-  }
+
   input ChatInput {
     users: [Int]
   }
+
   input MessageInput {
     text: String!
     chatId: Int!
   }
+
+  type Response {
+    success: Boolean
+  }
+
+  type UsersSearch {
+    users: [User]
+  }
+
+  type Auth {
+    token: String
+  }
+
   type RootMutation {
     addPost (
       post: PostInput!
@@ -30,48 +81,13 @@ const typeDefinitions = `
       email: String!
       password: String!
     ): Auth
+    signup (
+      username: String!
+      email: String!
+      password: String!
+    ): Auth
   }
-  type Auth{
-    token: String
-  }
-  type User {
-    id: Int
-    avatar: String
-    username: String
-  }
-  type UsersSearch {
-    users: [User]
-  }
-  type Post {
-    id: Int
-    text: String
-    user: User
-  }
-  type Message {
-    id: Int
-    text: String
-    chat: Chat
-    user: User
-  }
-  type Chat {
-    id: Int
-    messages: [Message]
-    users: [User]
-    lastMessage: Message
-  }
-  type PostFeed {
-    posts: [Post]
-  }
-  type Response {
-    success: Boolean
-  }
-  type RootQuery {
-    posts: [Post]
-    chats: [Chat]
-    chat(chatId: Int): Chat
-    postsFeed(page: Int, limit: Int): PostFeed
-    usersSearch(page: Int, limit: Int, text: String!): UsersSearch
-  }
+
   schema {
     query: RootQuery
     mutation: RootMutation
