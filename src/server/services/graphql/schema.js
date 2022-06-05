@@ -32,6 +32,7 @@ const typeDefinitions = `
   }
 
   type RootQuery {
+    currentUser: User @auth
     posts: [Post] 
     chats: [Chat] @auth
     chat(chatId: Int): Chat
@@ -67,13 +68,13 @@ const typeDefinitions = `
   type RootMutation {
     addPost (
       post: PostInput!
-    ): Post
+    ): Post @auth
     addChat (
       chat: ChatInput!
     ): Chat
     addMessage (
       message: MessageInput!
-    ): Message
+    ): Message @auth
     deletePost (
       postId: Int!
     ): Response

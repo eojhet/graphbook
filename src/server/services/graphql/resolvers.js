@@ -38,6 +38,9 @@ export default function resolver() {
       },
     },
     RootQuery: {
+      currentUser(root, args, context) {
+        return context.user;
+      },
       postsFeed(root, { page, limit }, context) {
         var skip = 0;
         if (page && limit) {
@@ -69,22 +72,15 @@ export default function resolver() {
         });
       },
       chats(root, args, context) {
-        return User.findAll().then((users) => {
-          if (!users.length) {
-            return [];
-          }
-          const usersRow = users[0];
-
-          return Chat.findAll({
-            include: [{
-              model: User,
-              required: true,
-              through: { where: { userId: usersRow.id }},
-            },
-            {
-              model: Message,
-            }],
-          });
+        return Chat.findAll({
+          include: [{
+            model: User,
+            required: true,
+            through: { where: { userId: context.user.id }},
+          },
+          {
+            model: Message,
+          }],
         });
       },
       usersSearch(root, { page, limit, text }, context) {
@@ -116,22 +112,18 @@ export default function resolver() {
     },
     RootMutation: {
       addMessage(root, { message }, context) {
-        return User.findAll().then((users) => {
-          const usersRow = users[0];
-
-          return Message.create({
-            ...message,
-          }).then((newMessage) => {
-            return Promise.all([
-              newMessage.setUser(usersRow.id),
-              newMessage.setChat(message.chatId),
-            ]).then(() => {
-              logger.log({
-                level: 'info',
-                message: 'Message was created',
-              });
-              return newMessage;
+        return Message.create({
+          ...message,
+        }).then((newMessage) => {
+          return Promise.all([
+            newMessage.setUser(context.user.id),
+            newMessage.setChat(message.chatId),
+          ]).then(() => {
+            logger.log({
+              level: 'info',
+              message: 'Message was created',
             });
+            return newMessage;
           });
         });
       },
@@ -149,21 +141,17 @@ export default function resolver() {
         });
       },
       addPost(root, { post }, context) {
-        return User.findAll().then((users) => {
-          const usersRow = users[0];
-
-          return Post.create({
-            ...post,
-          }).then((newPost) => {
-            return Promise.all([
-              newPost.setUser(usersRow.id),
-            ]).then(() => {
-              logger.log({
-                level: 'info',
-                message: 'Post was created',
-              });
-              return newPost;
+        return Post.create({
+          ...post,
+        }).then((newPost) => {
+          return Promise.all([
+            newPost.setUser(context.user.id),
+          ]).then(() => {
+            logger.log({
+              level: 'info',
+              message: 'Post was created',
             });
+            return newPost;
           });
         });
       },
